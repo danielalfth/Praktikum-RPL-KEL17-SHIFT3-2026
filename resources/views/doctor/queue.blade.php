@@ -126,25 +126,43 @@
 
 @push('scripts')
 <script>
+// Hash-based change detection for reliable auto-refresh
+var lastDoctorHash = '';
+
+function computeDoctorHash(data) {
+    if (!data.queues || data.queues.length === 0) return 'empty';
+    return data.queues.map(function(q) { return q.id + ':' + q.status; }).join('|');
+}
+
+// Capture initial state from server-rendered data
+@if(!$schedule || $schedule->queues->isEmpty())
+    lastDoctorHash = 'empty';
+@else
+    lastDoctorHash = '{!! $schedule->queues->map(fn($q) => $q->id . ":" . $q->status)->implode("|") !!}';
+@endif
+    
 setInterval(function() {
     fetch('{{ route("api.queue.status") }}', {
-        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.queues) {
-            let menunggu = 0, diperiksa = 0, selesai = 0;
-            data.queues.forEach(q => {
-                if (q.status === 'Menunggu') menunggu++;
-                if (q.status === 'Diperiksa') diperiksa++;
-                if (q.status === 'Selesai') selesai++;
-            });
-            document.getElementById('stat-menunggu').textContent = menunggu;
-            document.getElementById('stat-diperiksa').textContent = diperiksa;
-            document.getElementById('stat-selesai').textContent = selesai;
+        method: 'GET',
+        credentials: 'same-origin',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
         }
     })
-    .catch(err => console.log('Auto-refresh error:', err));
+    .then(function(r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+    })
+    .then(function(data) {
+        var newHash = computeDoctorHash(data);
+        if (newHash !== lastDoctorHash) {
+            console.log('Doctor queue data changed, reloading...', lastDoctorHash, '->', newHash);
+            location.reload();
+        }
+    })
+    .catch(function(err) { console.log('Auto-refresh error:', err); });
 }, 5000);
 </script>
 @endpush
