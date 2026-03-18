@@ -35,18 +35,23 @@ class DatabaseSeeder extends Seeder
             ['name' => 'dr. Irfan Hakim',     'email' => 'doctor9@doctor.com', 'code' => 'I'],
         ];
 
-        foreach ($doctors as $doc) {
-            User::create([
-                'name' => $doc['name'],
-                'email' => $doc['email'],
-                'password' => Hash::make('password'),
-                'role' => 'doctor',
-                'doctor_code' => $doc['code'],
-                'gender' => 'Laki-laki',
-                'age' => 35,
+        foreach ($shiftData['doctors'] as $index => $doctorCode) {
+            $doctor = User::where('doctor_code', $doctorCode)
+                          ->where('role', 'doctor')  // FIX: Filter role
+                          ->firstOrFail();
+            
+            $roomId = $rooms[$shiftData['rooms'][$index]]->id;
+        
+            Schedule::create([
+                'doctor_id' => $doctor->id,
+                'room_id' => $roomId,
+                'day_of_week' => $day,
+                'shift' => $shiftName,
+                'start_time' => $shiftData['start'],
+                'end_time' => $shiftData['end'],
+                'max_quota' => 20,
             ]);
         }
-
         // Create 3 Rooms
         $rooms = [];
         for ($i = 1; $i <= 3; $i++) {
