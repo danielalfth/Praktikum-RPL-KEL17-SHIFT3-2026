@@ -126,9 +126,7 @@ class QueueController extends Controller
      */
     public function apiStatus(Request $request)
     {
-        // Release session to prevent blocking
-        session_write_close();
-
+        
         $today = Carbon::today()->toDateString();
         $user = auth()->user();
         $currentShift = Schedule::getCurrentShift();
