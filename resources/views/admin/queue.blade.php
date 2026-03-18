@@ -171,21 +171,49 @@
 
 @push('scripts')
 <script>
-// AJAX Auto-refresh every 5 seconds
+// Hash-based change detection for reliable auto-refresh
+var lastAdminHash = '';
+
+function computeAdminHash(data) {
+    if (!data.schedules || data.schedules.length === 0) return 'empty';
+    return data.schedules.map(function(s) {
+        var queueInfo = '';
+        if (s.queues && s.queues.length > 0) {
+            queueInfo = s.queues.map(function(q) { return q.id + ':' + q.status; }).join(',');
+        }
+        return s.id + '[' + queueInfo + ']';
+    }).join('|');
+}
+
+// Capture initial state
+@if($schedules->isEmpty())
+    lastAdminHash = 'empty';
+@else
+    lastAdminHash = '{!! $schedules->map(function($s) { $qi = $s->queues->map(fn($q) => $q->id . ":" . $q->status)->implode(","); return $s->id . "[" . $qi . "]"; })->implode("|") !!}';
+@endif
+    
 setInterval(function() {
     fetch('{{ route("api.queue.status") }}', {
-        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
-    })
-    .then(r => r.json())
-    .then(data => {
-        // Update quota badges
-        if (data.schedules) {
-            data.schedules.forEach(s => {
-                // Just reload page for full sync - simpler for admin panel
-            });
+        method: 'GET',
+        credentials: 'same-origin',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
         }
     })
-    .catch(err => console.log('Auto-refresh error:', err));
+    .then(function(r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+    })
+    .then(function(data) {
+        var newHash = computeAdminHash(data);
+        if (newHash !== lastAdminHash) {
+            console.log('Admin queue data changed, reloading...', lastAdminHash, '->', newHash);
+            location.reload();
+        }
+    })
+    .catch(function(err) { console.log('Auto-refresh error:', err); });
 }, 5000);
 </script>
 @endpush
