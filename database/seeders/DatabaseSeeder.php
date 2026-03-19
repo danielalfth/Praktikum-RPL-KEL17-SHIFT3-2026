@@ -12,6 +12,7 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        // Admin
         User::updateOrCreate(
             ['email' => 'admin@admin.com'],
             [
@@ -23,6 +24,7 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
+        // 9 Dokter (A-I)
         $doctors = [
             ['name' => 'dr. Andi Pratama', 'email' => 'doctor1@doctor.com', 'code' => 'A'],
             ['name' => 'dr. Budi Santoso', 'email' => 'doctor2@doctor.com', 'code' => 'B'],
@@ -49,18 +51,19 @@ class DatabaseSeeder extends Seeder
             );
         }
 
-        $rooms = [];
+        // 3 Ruangan
         for ($i = 1; $i <= 3; $i++) {
-            $rooms[$i] = Room::updateOrCreate(
+            Room::updateOrCreate(
                 ['room_name' => 'Ruang ' . $i],
                 ['room_name' => 'Ruang ' . $i]
             );
         }
 
+        // Shift dan jadwal (5 hari x 3 shift x 3 dokter = 45 jadwal)
         $shifts = [
-            'Pagi' => ['start' => '08:00', 'end' => '14:00', 'doctors' => ['A', 'D', 'G'], 'rooms' => [1, 2, 3]],
-            'Sore' => ['start' => '15:00', 'end' => '21:00', 'doctors' => ['B', 'E', 'H'], 'rooms' => [1, 2, 3]],
-            'Malam' => ['start' => '22:00', 'end' => '04:00', 'doctors' => ['C', 'F', 'I'], 'rooms' => [1, 2, 3]],
+            'Pagi' => ['start' => '08:00', 'end' => '14:00', 'doctors' => ['A', 'D', 'G']],
+            'Sore' => ['start' => '15:00', 'end' => '21:00', 'doctors' => ['B', 'E', 'H']],
+            'Malam' => ['start' => '22:00', 'end' => '04:00', 'doctors' => ['C', 'F', 'I']],
         ];
 
         $days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
@@ -69,7 +72,7 @@ class DatabaseSeeder extends Seeder
             foreach ($shifts as $shiftName => $shiftData) {
                 foreach ($shiftData['doctors'] as $index => $doctorCode) {
                     $doctor = User::where('doctor_code', $doctorCode)->first();
-                    $room = $rooms[$shiftData['rooms'][$index]];
+                    $room = Room::where('room_name', 'Ruang ' . ($index + 1))->first();
 
                     Schedule::updateOrCreate(
                         [
@@ -88,6 +91,7 @@ class DatabaseSeeder extends Seeder
             }
         }
 
+        // Pasien demo
         User::updateOrCreate(
             ['email' => 'pasien@gmail.com'],
             [
