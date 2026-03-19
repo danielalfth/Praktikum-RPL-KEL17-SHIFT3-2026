@@ -599,13 +599,141 @@
         .live-clock-bar .shift-sore { background: #E3F2FD; color: #1565C0; }
         .live-clock-bar .shift-malam { background: #EDE7F6; color: #4527A0; }
         .live-clock-bar .shift-diluar { background: #FFF0F0; color: #D32F2F; }
+
+        /* ─── Mobile Hamburger Toggle ─── */
+        .sidebar-toggle {
+            display: none;
+            position: fixed;
+            top: 0.75rem;
+            left: 0.75rem;
+            z-index: 1100;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-md);
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .sidebar-toggle:hover {
+            background: var(--primary-bg);
+            color: var(--primary);
+        }
+
+        /* ─── Sidebar Backdrop ─── */
+        .sidebar-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            z-index: 999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .sidebar-backdrop.active {
+            display: block;
+            opacity: 1;
+        }
+
+        /* ─── Mobile Responsive ─── */
+        @media (max-width: 767.98px) {
+            .sidebar-toggle {
+                display: flex;
+            }
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                box-shadow: none;
+            }
+            .sidebar.open {
+                transform: translateX(0);
+                box-shadow: var(--shadow-lg);
+            }
+            .main-content {
+                margin-left: 0 !important;
+                padding: 1rem 1rem;
+                padding-top: 3.75rem;
+            }
+
+            /* Live Clock Bar */
+            .live-clock-bar {
+                flex-wrap: wrap;
+                gap: 0.75rem;
+                padding: 0.75rem;
+            }
+            .live-clock-bar .clock-separator {
+                display: none;
+            }
+            .live-clock-bar .clock-item {
+                min-width: calc(50% - 0.5rem);
+            }
+
+            /* Page Headers */
+            .page-header .d-flex.justify-content-between {
+                flex-direction: column !important;
+                gap: 0.5rem;
+            }
+            .page-header h2 {
+                font-size: 1.2rem;
+            }
+
+            /* Stat Cards */
+            .stat-card .stat-value {
+                font-size: 1.3rem;
+            }
+
+            /* Queue Number */
+            .queue-number {
+                font-size: 1.75rem;
+            }
+
+            /* Buttons in tables */
+            .d-flex.gap-1.flex-wrap {
+                flex-direction: column;
+            }
+            .d-flex.gap-1.flex-wrap .btn {
+                width: 100%;
+                text-align: center;
+            }
+
+            /* Auth pages edge spacing */
+            .auth-page {
+                padding: 1rem;
+            }
+            .auth-card {
+                padding: 1.75rem 1.25rem;
+            }
+
+            /* Modal adjustments */
+            .modal-dialog {
+                margin: 0.75rem;
+            }
+        }
+
+        /* ─── Small Tablets ─── */
+        @media (min-width: 768px) and (max-width: 991.98px) {
+            .main-content {
+                padding: 1.5rem;
+            }
+        }
     </style>
     @stack('styles')
 </head>
 <body>
     @auth
+    <!-- Mobile Hamburger Toggle -->
+    <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+        <i class="bi bi-list"></i>
+    </button>
+    <!-- Sidebar Backdrop -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
     <!-- Sidebar -->
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar">
         <div class="sidebar-brand">
             <h4>
                 <span class="brand-icon"><i class="bi bi-heart-pulse-fill"></i></span>
@@ -780,6 +908,44 @@
         }
         updateClock();
         setInterval(updateClock, 1000);
+    </script>
+
+    <!-- Sidebar Toggle Script -->
+    <script>
+        (function() {
+            var toggle = document.getElementById('sidebarToggle');
+            var sidebar = document.getElementById('sidebar');
+            var backdrop = document.getElementById('sidebarBackdrop');
+            if (!toggle || !sidebar || !backdrop) return;
+
+            function openSidebar() {
+                sidebar.classList.add('open');
+                backdrop.classList.add('active');
+                toggle.innerHTML = '<i class="bi bi-x-lg"></i>';
+            }
+            function closeSidebar() {
+                sidebar.classList.remove('open');
+                backdrop.classList.remove('active');
+                toggle.innerHTML = '<i class="bi bi-list"></i>';
+            }
+
+            toggle.addEventListener('click', function() {
+                if (sidebar.classList.contains('open')) {
+                    closeSidebar();
+                } else {
+                    openSidebar();
+                }
+            });
+            backdrop.addEventListener('click', closeSidebar);
+
+            // Close sidebar on nav link click (mobile)
+            var navLinks = sidebar.querySelectorAll('.nav-link');
+            navLinks.forEach(function(link) {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth < 768) closeSidebar();
+                });
+            });
+        })();
     </script>
     @endauth
     @stack('scripts')

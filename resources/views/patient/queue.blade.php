@@ -68,54 +68,44 @@
 
 @push('scripts')
 <script>
-    // AJAX Auto-refresh every 5 seconds
+    // Hash-based change detection for reliable auto-refresh
+    let lastDataHash = '';
+
+    function computeHash(data) {
+        // Create a string fingerprint from queue data
+        if (!data.queues || data.queues.length === 0) return 'empty';
+        return data.queues.map(q => q.id + ':' + q.status + ':' + q.queue_number).join('|');
+    }
+
+    // Capture initial state from server-rendered page
+    @if($queues->isEmpty())
+        lastDataHash = 'empty';
+    @else
+        lastDataHash = '{!! $queues->map(fn($q) => $q->id . ":" . $q->status . ":" . $q->queue_number)->implode("|") !!}';
+    @endif
+        
     setInterval(function() {
         fetch('{{ route("api.queue.status") }}', {
-            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.queues && data.queues.length > 0) {
-                let html = '<div class="row g-4">';
-                data.queues.forEach(q => {
-                    let statusClass = q.status.toLowerCase();
-                    let pulseHtml = q.status === 'Diperiksa' ? '<span class="pulse-dot me-1" style="background: var(--primary-light);"></span>' : '';
-                    html += `
-                    <div class="col-md-6">
-                        <div class="card-modern">
-                            <div class="card-body text-center p-4">
-                                <div class="queue-number mb-2">${q.queue_number}</div>
-                                <div class="mb-3">
-                                    <span class="badge-status badge-${statusClass}">${pulseHtml}${q.status}</span>
-                                </div>
-                                <hr style="border-color: var(--border-color);">
-                                <div class="row text-start mt-3">
-                                    <div class="col-6 mb-2">
-                                        <small class="text-secondary d-block">Dokter</small>
-                                        <span class="fw-semibold">${q.schedule.doctor.name}</span>
-                                    </div>
-                                    <div class="col-6 mb-2">
-                                        <small class="text-secondary d-block">Ruangan</small>
-                                        <span class="fw-semibold">${q.schedule.room.room_name}</span>
-                                    </div>
-                                    <div class="col-6 mb-2">
-                                        <small class="text-secondary d-block">Jam Praktik</small>
-                                        <span class="fw-semibold">${q.schedule.start_time.substring(0,5)} - ${q.schedule.end_time.substring(0,5)}</span>
-                                    </div>
-                                    <div class="col-6 mb-2">
-                                        <small class="text-secondary d-block">Shift</small>
-                                        <span class="fw-semibold">${q.schedule.shift}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>`;
-                });
-                html += '</div>';
-                document.getElementById('queue-container').innerHTML = html;
+            method: 'GET',
+            credentials: 'same-origin',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
             }
         })
-        .catch(err => console.log('Auto-refresh error:', err));
+        .then(function(r) {
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return r.json();
+        })
+        .then(function(data) {
+            var newHash = computeHash(data);
+            if (newHash !== lastDataHash) {
+                console.log('Queue data changed, reloading...', lastDataHash, '->', newHash);
+                location.reload();
+            }
+        })
+        .catch(function(err) { console.log('Auto-refresh error:', err); });
     }, 5000);
 </script>
 @endpush

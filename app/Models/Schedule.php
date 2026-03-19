@@ -42,7 +42,7 @@ class Schedule extends Model
     /**
      * Get the current shift based on time
      */
-    public static function getCurrentShift(): string
+    public static function getCurrentShift(): ?string
     {
         $hour = (int) Carbon::now()->format('H');
 
@@ -50,9 +50,12 @@ class Schedule extends Model
             return 'Pagi';
         } elseif ($hour >= 15 && $hour < 21) {
             return 'Sore';
-        } else {
+        } elseif ($hour >= 22 || $hour < 4) {
             return 'Malam';
         }
+        
+        // Outside operational hours (04:00-07:59, 14:00-14:59, 21:00-21:59)
+        return null;
     }
 
     /**

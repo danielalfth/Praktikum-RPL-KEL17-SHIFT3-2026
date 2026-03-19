@@ -4,7 +4,7 @@
 @section('content')
 <div class="page-header">
     <h2><i class="bi bi-calendar2-week me-2"></i>Jadwal Dokter</h2>
-    <p>Lihat jadwal praktik dan ketersediaan kuota dokter — Hari ini: <strong>{{ $today }}</strong></p>
+    <p>Lihat jadwal praktik dan ketersediaan kuota dokter — Hari ini: <strong>{{ $today }}</strong>, Shift saat ini: <strong>{{ $currentShift ?? 'Di Luar Jam Operasional' }}</strong></p>
 </div>
 
 <!-- Today's schedule with remaining quota -->
@@ -12,7 +12,10 @@
 <div class="row g-3 mb-4">
     @forelse($todaySchedules as $schedule)
         <div class="col-md-4">
-            <div class="stat-card">
+            <div class="stat-card {{ $schedule->shift === $currentShift ? 'border-primary' : '' }}">
+                @if($schedule->shift === $currentShift)
+                    <span class="badge bg-primary mb-2">Shift Aktif</span>
+                @endif
                 <div class="d-flex justify-content-between align-items-start">
                     <div>
                         <div class="stat-label mb-1">{{ $schedule->shift }} &middot; {{ $schedule->room->room_name }}</div>
