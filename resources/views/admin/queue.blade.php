@@ -6,7 +6,7 @@
     <div class="d-flex justify-content-between align-items-center">
         <div>
             <h2><i class="bi bi-gear-wide-connected me-2"></i>Manajemen Antrean</h2>
-            <p>Shift <strong>{{ $currentShift }}</strong> — {{ \Carbon\Carbon::today()->translatedFormat('l, d F Y') }}</p>
+            <p>Shift <strong>{{ $currentShift ?? 'Di Luar Jam Operasional' }}</strong> — {{ \Carbon\Carbon::today()->translatedFormat('l, d F Y') }}</p>
         </div>
         <div class="d-flex align-items-center gap-3">
             <div class="refresh-indicator">
