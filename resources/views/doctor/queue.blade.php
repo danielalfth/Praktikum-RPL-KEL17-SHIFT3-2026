@@ -6,7 +6,7 @@
     <div class="d-flex justify-content-between align-items-center">
         <div>
             <h2><i class="bi bi-people-fill me-2"></i>Daftar Pasien</h2>
-            <p>Antrean pasien shift <strong>{{ $currentShift }}</strong> — {{ \Carbon\Carbon::today()->translatedFormat('l, d F Y') }}</p>
+            <p>Antrean pasien shift <strong>{{ $currentShift ?? 'Di Luar Jam Operasional' }}</strong> — {{ \Carbon\Carbon::today()->translatedFormat('l, d F Y') }}</p>
         </div>
         <div class="refresh-indicator">
             <span class="dot"></span> Auto-refresh aktif
