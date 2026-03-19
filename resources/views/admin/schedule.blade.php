@@ -4,7 +4,7 @@
 @section('content')
 <div class="page-header">
     <h2><i class="bi bi-calendar2-week me-2"></i>Jadwal Dokter</h2>
-    <p>Pantau jadwal seluruh dokter — Hari ini: <strong>{{ $today }}</strong>, Shift saat ini: <strong>{{ $currentShift }}</strong></p>
+    <p>Pantau jadwal seluruh dokter — Hari ini: <strong>{{ $today }}</strong>, Shift saat ini: <strong>{{ $currentShift ?? 'Di Luar Jam Operasional' }}</strong></p>
 </div>
 
 <!-- Today's schedule -->
